@@ -1,0 +1,274 @@
+---
+title: "Long-term temporal trends in crimes and the influence of the COVID pandemic"
+format: PrettyPDF-pdf
+bibliography: referencestt.bib
+csl: apa.csl
+
+---
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+![NSC-R Tidy Tuesday](~/Desktop/HARRIE/GithubHarrie/customizing/customizing/pdf/Screenshot.PNG)
+
+<br>
+
+<br>
+
+
+
+
+
+\newpage
+
+# Introduction
+
+Below you find the materials Wim Bernasco prepared for the Tidy Tuesday workshop on May 24th 2022. [Here](https://nscrweb.netlify.app/posts/2022-05-24-nsc-r-tidy-tuesday/) is the original link to this workshop and the materials. You find links to two small datasets. One (`crime.csv`) contains the number of police recorded residential burglaries, bike thefts and assaults in the Netherlands per month between January 2012 and April 2022. The other (`population.csv`) contains the number of inhabitants of the Netherlands during the same period, per first day of the month. In the workshop he tried to make sense of long-term temporal trends in these crimes, and hopefully also make useful statements about how things changed when the COVID pandemic arrived around February 2020. He worked out eight steps in the analysis [@bernasco_nsc-r_2022-2].[^1]
+
+[^1]: [Franziska Yasrebi-de Kom corrected errors and provided fruitfull suggestions forimprovement of the first draft.]
+
+# Start-up
+
+Create a new folder on the computer where you run R, and store the two datafiles crime.csv and residents.csv in the folder.
+
+You will normally load libraries here at the top of your script, but in this example I will load libraries at the point where I need their functionality. This shows when and why they are needed.
+
+If your project is reasonably small and all files (data, scripts, and output files) can be stored in a single folder without creating confusion, setting a working folder is a good idea. All reading from and writing to disk will be done from and to this folder.
+
+    setwd("X:/YYY/ZZZ") # for example: setwd("C:/Users/bernasco/crime_trends_NL")
+
+Note: In this script I will use the new `|>` piping symbol. It is equivalent to `%>%` but has two advantages, which are\
+- (1) it is shorter (2 instead of 3 symbols), and\
+- (2) it does not require you to load a library, as it has been built into base R
+
+# Read both files from disk and assign each a name.
+
+Any name will do, but I suggest "crime" and " residents". Read data using the `read_csv` function in package `readr`. `read_csv` has a few advantages over `read.csv` but the latter will also do.
+
+`read_csv` is in the `readr` library, so we load `readr` first. I added `tidyverse` also already.
+
+```{r}
+#| warning: false
+#| echo: true
+library(readr)     # read_csv function
+library(tidyverse)
+```
+
+Note: in the live workshop we stumbled upon an error caused by our assumption that "crimes.csv" and "population.csv" had dates coded with dashes (like in "2022-05-24") but my Excel version had written it with slashes (like in "2022/05/24"). Verify that after reading the files, their 'date' column has type 'date', not type 'character'. You can use `glimpse` to verify this.
+
+```{r}
+#| warning: false
+#| echo: true
+crimes <- read_csv("~/Desktop/HARRIE/GithubHarrie/customizing/customizing/pdf/crimes.csv")
+
+population <- read_csv("~/Desktop/HARRIE/GithubHarrie/customizing/customizing/pdf/population.csv")
+```
+
+# Explore data
+
+Explore the structure of the files. How many rows (observations), how many columns (variables), what are the variable names? What are their types: Are they integers, characters, dates, factors, .? keys? First explore the crime data.How many observations and how many variables (rows and columns)?
+
+```{r}
+#| warning: false
+#| echo: true
+crimes |> dim()        # dim(crimes)
+```
+
+For glimpse, slice-sample and count, we need library dplyr library(dplyr). Display the names and types of the variables, and show values for the first few observations column-wise. Note: verify that column date has type 'date'
+
+```{r}
+#| warning: false
+#| echo: true
+crimes |> glimpse()
+```
+
+Show the first few cases row-wise
+
+```{r}
+#| warning: false
+#| echo: true
+crimes |> head()
+```
+
+Show a random sample of 10 cases rather than the first ones. This will usually have more variation in values
+
+```{r}
+#| warning: false
+#| echo: true
+crimes |> slice_sample(n=10) |> head()
+```
+
+Frequency table of crime types
+
+```{r}
+#| warning: false
+#| echo: true
+crimes |> count(crime_type)
+```
+
+You will see we have data for 124 months: 10 full years (2012-2021) + 4 months (Jan-April 2022)
+
+Next explore the population data
+
+```{r}
+#| warning: false
+#| echo: true
+population |> dim()
+```
+
+Note: verify that column date has type 'date'.
+
+```{r}
+#| warning: false
+#| echo: true
+population |> glimpse()
+population |> head()
+population |> slice_sample(n=10) |> head()
+```
+
+# Visualize (plot) population and crime development
+
+Visualize (plot) the development of the population size of the Netherlands between January 2012 and April 2022, and do the same for the frequencies of residential burglary, bike theft and assault.The ggplot function is in the ggplot2 library.
+
+```{r}
+#| warning: false
+#| echo: true
+library(ggplot2)
+```
+
+Plot population as a scatterplot.
+
+```{r}
+#| warning: false
+#| echo: true
+#| label: pop_scatterplot
+#| fig-cap: "Population grow"
+#| fig-width: 4
+#| fig-height: 3
+population |> 
+    ggplot() + 
+    geom_point(mapping = aes(x = date, y = population))
+  # or as a line graph
+  population |> 
+    ggplot() + 
+    geom_line(mapping = aes(x = date, y = population))
+```
+
+Keep it simple first. You can finetune later.Plot burglary frequencies
+
+```{r}
+#| warning: false
+#| echo: true
+#| label: burg_freq
+#| fig-cap: "Burglary frequencies"
+#| fig-width: 4
+#| fig-height: 3
+  crimes %>%
+    filter(crime_type == "burglary") |>
+    ggplot() + 
+    geom_line(mapping = aes(x=date, y=frequency))
+```
+
+You should see a seasonal pattern with highs in Winter (nov-jan) and lows in summer. Plot bike theft
+
+```{r}
+#| warning: false
+#| echo: true
+#| label: seas_pattern
+#| fig-cap: "Seasonal pattern"
+#| fig-width: 4
+#| fig-height: 3
+ crimes %>%
+    filter(crime_type == "bike theft") |>
+    ggplot() + 
+    geom_line(mapping = aes(x = date, y = frequency)) 
+```
+
+You should also see a seasonal pattern, but with peaks in autumn (dep-nov)
+
+Plot assault
+
+```{r}
+#| warning: false
+#| echo: true
+#| label: assault
+#| fig-cap: "Assault"
+#| fig-width: 4
+#| fig-height: 3
+crimes %>%
+    filter(crime_type == "assault") |>
+    ggplot() + 
+    geom_line(mapping = aes(x = date, y = frequency))
+```
+
+The seasonal pattern for assault shows peaks in spring (apr-jun). Plot the three crime types in a single graph and distinguish them by color.
+
+```{r}
+#| warning: false
+#| echo: true
+#| label: crime_type
+#| fig-cap: "Three crime types"
+#| fig-width: 4
+#| fig-height: 3
+crimes |>
+    ggplot() + 
+    geom_line(aes(x = date, y = frequency, color = crime_type)) 
+```
+
+Plot them in separate panels.
+
+```{r}
+#| warning: false
+#| echo: true
+#| label: sep_panels
+#| fig-cap: "Seperate crime panels"
+#| fig-width: 4
+#| fig-height: 3
+crimes |>
+    ggplot() + 
+    geom_line(aes(x = date, y = frequency)) +
+    # scales = "free_y" allows each panel to have its own
+    #  Y-axis scaling
+    facet_wrap(facets = "crime_type", scales = "free_y", ncol = 1)
+
+```
+
+I would not advise it, but you can combine panels and color (if you do, hide the legend to prevent redundancy)
+
+```{r}
+#| warning: false
+#| echo: true
+#| label: panels_color
+#| fig-cap: "Crime types in color"
+#| fig-width: 4
+#| fig-height: 3
+crimes |>
+    ggplot() + 
+    geom_line(aes(x = date, y = frequency, color = crime_type)) +
+    facet_wrap(facets = "crime_type", scales = "free_y", ncol = 1) +
+    theme(legend.position="none")
+```
+
+
+## Do anything else with the data that you find fun or seems
+
+To make senseYou can see that there is an overall decline for each crime type (mean_change is always negative) and the decline is more pronounced (mean_change is more negative) during the pandemic than before the pandemic, in particular for assault and burglary.
+
+For more rigorous statistical tests, we would need to dive into time series analysis.
+
+# References
+
+::: {#refs}
+:::
+
+
+
+
