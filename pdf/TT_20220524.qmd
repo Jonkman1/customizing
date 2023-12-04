@@ -17,7 +17,7 @@ csl: apa.csl
 
 <br>
 
-![NSC-R Tidy Tuesday](C:/FilesHarrie/HarrieGithub/customizing/customizing/pdf/Screenshot.PNG)
+![NSC-R Tidy Tuesday](~/Desktop/HARRIE/GithubHarrie/customizing/customizing/pdf/Screenshot.PNG)
 
 <br>
 
@@ -67,9 +67,9 @@ Note: in the live workshop we stumbled upon an error caused by our assumption th
 ```{r}
 #| warning: false
 #| echo: true
-crimes <- read_csv("C:/FilesHarrie/HarrieGithub/customizing/customizing/pdf/crimes.csv")
+crimes <- read_csv("~/Desktop/HARRIE/GithubHarrie/customizing/customizing/pdf/crimes.csv")
 
-population <- read_csv("C:/FilesHarrie/HarrieGithub/customizing/customizing/pdf/population.csv")
+population <- read_csv("~/Desktop/HARRIE/GithubHarrie/customizing/customizing/pdf/population.csv")
 ```
 
 # Explore data
